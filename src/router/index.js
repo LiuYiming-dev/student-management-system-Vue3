@@ -17,7 +17,24 @@ const router = createRouter({
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
+      {
+          path:'/login',
+          name:'login',
+          component: () => import('../views/Login.vue'),
+      },
   ],
+})
+
+// 🌟 路由全局前置守卫
+router.beforeEach((to, from, next) => {
+    const token = localStorage.getItem('student_token')
+
+    // 如果去的不是登录页，且没有token，强行跳到登录
+    if (to.path !== '/login' && !token) {
+        next('/login')
+    } else {
+        next() // 否则放行
+    }
 })
 
 export default router
