@@ -23,12 +23,13 @@ request.interceptors.request.use(config => {
 request.interceptors.response.use(
     response => {
         const res = response.data
-        if (res.code == '200') {
+        if (res.code === '200') {
             return res.data;
+        } else {
+            return Promise.reject(new Error(res.msg || 'Error'));
         }
     },
     error => {
-        // 🌟 重点：如果请求返回了 401
         if (error.response && error.response.status === 401) {
             localStorage.removeItem('student_token'); // 清除掉那个可能过期的假证件
             location.href = '/login'; // 🌟 暴力跳转到登录页

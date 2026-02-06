@@ -3,6 +3,8 @@ import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getStudentPage, addStudent, updateStudent, deleteStudent } from '@/api/student'
 import router from "@/router/index.js";
+import {School, User} from "@element-plus/icons-vue";
+
 
 const tableData = ref([])
 const total = ref(0)
@@ -10,6 +12,8 @@ const pageNum = ref(1)
 const pageSize = ref(10)
 const loading = ref(false) // 🌟 新增：加载状态
 const searchName = ref('')
+
+
 
 // 加载数据
 const loadData = async () => {
@@ -53,26 +57,42 @@ const dialogVisible = ref(false)
 const form = ref({ studentNo: '', name: '', age: '', email: '', clazzId: 1, gender: 1 })
 
 const openDialog = () => {
+  console.log("click the add button")
   form.value = { clazzId: 1, gender: 1 } // 重置表单
   dialogVisible.value = true
 }
 
 const handleEdit = (row) => {
-  form.value = JSON.parse(JSON.stringify(row))
-  dialogVisible.value = true
+  const editData = JSON.parse(JSON.stringify(row));
+  console.log("编辑原始数据:", row.gender)
+  if (editData.gender === '男' || editData.gender === 1) {
+    editData.gender = 1
+  } else if (editData.gender === '女' || editData.gender === 0) {
+    editData.gender = 0
+  }
+  form.value = editData;
+  dialogVisible.value = true;
 }
 
 // 保存（增/改）
 const save = async () => {
-  if (form.value.id) {
-    await updateStudent(form.value)
-    ElMessage.success('修改成功')
-  } else {
-    await addStudent(form.value)
-    ElMessage.success('新增成功')
+  try {
+    if (form.value.id) {
+      await updateStudent(form.value)
+      ElMessage.success('修改成功')
+    } else {
+      // 如果后端校验失败（比如学号重复），request.js 会抛出 reject
+      // 那么这里的代码会直接跳到 catch，不会执行下一行的“新增成功”
+      await addStudent(form.value);
+      ElMessage.success('新增成功');
+    }
+    dialogVisible.value = false;
+    loadData();
+  } catch (error){
+    console.error('提交失败:' + error.message);
+    ElMessage.error('提交失败:' + error.message);
   }
-  dialogVisible.value = false
-  loadData()
+
 }
 const logout = () => {
   localStorage.removeItem('student_token') // 清除 Token
@@ -85,6 +105,7 @@ const logout = () => {
 
 
 <template>
+
   <!-- 🌟 使用布局容器 -->
   <el-container class="layout-container">
 
@@ -109,15 +130,12 @@ const logout = () => {
         <div class="breadcrumb">首页 / 学生管理</div>
         <div class="user-info">
           <span>管理员</span>
-          <el-button type="text">退出</el-button>
+          <el-button type="text" @click="logout">退出</el-button>
         </div>
       </el-header>
 
       <!-- 主内容区 -->
       <el-main>
-        <div class="action-bar">
-          <el-button type="primary" @click="openDialog">新增学生</el-button>
-        </div>
 
         <div class="action-bar" style="display: flex; gap: 10px; margin-bottom: 20px;">
           <el-input
@@ -127,20 +145,33 @@ const logout = () => {
               clearable
               @clear="loadData"
           />
+
           <el-button type="primary" icon="Search" @click="loadData">搜索</el-button>
           <el-button type="success" icon="Plus" @click="openDialog">新增学生</el-button>
         </div>
 
+
+
         <!-- 🌟 v-loading 让表格加载时有转圈效果 -->
         <el-table :data="tableData" v-loading="loading" border style="width: 100%">
           <el-table-column prop="studentNo" label="学号" width="120" />
+          <el-table-column prop="className" label="班级" width="150" />
           <el-table-column prop="name" label="姓名" width="120" />
-          <el-table-column prop="className" label="班级" width="150" /> <!-- 🌟 之前做的 VO 字段 -->
+          <el-table-column prop="gender" label="性别" width="120" />
+<!--          <el-table-column label="性别">-->
+<!--            <template #default="scope">-->
+<!--              <el-tag :type="scope.row.gender === '男' ? 'primary' : 'danger'">-->
+<!--                {{ scope.row.gender}}-->
+<!--              </el-tag>-->
+<!--            </template>-->
+<!--          </el-table-column>-->
           <el-table-column prop="age" label="年龄" width="80" />
+          <el-table-column prop="email" label="邮箱" width="200" />
+
           <el-table-column label="操作">
-            <template #default="scope">
-              <el-button size="small" type="primary" @click="handleEdit(scope.row)">编辑</el-button>
-              <el-button size="small" type="danger" @click="handleDelete(scope.row.id)">删除</el-button>
+            <template #default="{row}">
+              <el-button size="small" type="primary" @click="handleEdit(row)">编辑</el-button>
+              <el-button size="small" type="danger" @click="handleDelete(row.id)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -155,8 +186,49 @@ const logout = () => {
       </el-main>
     </el-container>
   </el-container>
+  <el-dialog
+      v-model="dialogVisible"
+      title="新增学生信息"
+      width="400px"
+  >
+    <!-- 这里是表单，每个 el-input 通过 v-model 绑定到 form 对象上 -->
+    <el-form :model="form" label-width="80px">
+      <el-form-item label="学号">
+        <el-input v-model="form.studentNo" />
+      </el-form-item>
+      <el-form-item label="班级">
+        <el-input v-model="form.clazzId" />
+      </el-form-item>
+      <el-form-item label="姓名">
+        <el-input v-model="form.name" />
+      </el-form-item>
+<!--      <el-form-item label="性别">-->
+<!--        <el-input v-model="form.gender" />-->
+<!--      </el-form-item>-->
+      <el-form-item label="性别">
+        <!-- v-model 依然绑定 form.gender -->
+        <el-radio-group v-model="form.gender">
+          <!-- 🌟 注意这里的 :label="1"，加了冒号表示传递的是数字 1，不加冒号传的是字符串 "1" -->
+          <el-radio :value="1">男</el-radio>
+          <el-radio :value="0">女</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="年龄">
+        <el-input v-model.number="form.age" type="number" />
+      </el-form-item>
+      <el-form-item label="邮箱">
+        <el-input v-model="form.email" />
+      </el-form-item>
+    </el-form>
 
-  <!-- 弹窗部分保持不变，但你可以把 v-model 里的 clazzId 和 gender 补齐 -->
+    <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="save">确定</el-button>
+        </span>
+    </template>
+  </el-dialog>
+
 </template>
 
 <style scoped>
