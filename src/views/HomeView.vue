@@ -1,17 +1,17 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { getStudentPage, addStudent, updateStudent, deleteStudent } from '@/api/student'
+import {onMounted, ref} from 'vue'
+import {ElMessage, ElMessageBox} from 'element-plus'
+import {addStudent, deleteStudent, getStudentPage, updateStudent} from '@/api/student'
 import router from "@/router/index.js";
-import {School, User} from "@element-plus/icons-vue";
-
+import {getAllClazz} from "@/api/clazz.js";
 
 const tableData = ref([])
 const total = ref(0)
 const pageNum = ref(1)
 const pageSize = ref(10)
-const loading = ref(false) // 🌟 新增：加载状态
+const loading = ref(false)
 const searchName = ref('')
+const clazzList = ref([])
 
 
 
@@ -37,7 +37,10 @@ const loadData = async () => {
   }
 }
 
-onMounted(loadData)
+onMounted(async () =>{
+  await loadData();
+  clazzList.value = await getAllClazz();
+})
 
 const handleCurrentChange = (val) => {
   pageNum.value = val
@@ -54,7 +57,7 @@ const handleDelete = (id) => {
 }
 
 const dialogVisible = ref(false)
-const form = ref({ studentNo: '', name: '', age: '', email: '', clazzId: 1, gender: 1 })
+const form = ref({ studentNo: '', name: '', age: '', phoneNumber: '', clazzId: 1, gender: 1 })
 
 const openDialog = () => {
   console.log("click the add button")
@@ -106,37 +109,7 @@ const logout = () => {
 
 <template>
 
-  <!-- 🌟 使用布局容器 -->
-  <el-container class="layout-container">
-
-    <!-- 左侧菜单栏 -->
-    <el-aside width="200px">
-      <div class="logo">学生系统</div>
-      <el-menu default-active="1" class="el-menu-vertical">
-        <el-menu-item index="1">
-          <el-icon><User /></el-icon>
-          <span>学生管理</span>
-        </el-menu-item>
-        <el-menu-item index="2">
-          <el-icon><School /></el-icon>
-          <span>班级管理</span>
-        </el-menu-item>
-      </el-menu>
-    </el-aside>
-
-    <el-container>
-      <!-- 顶部状态栏 -->
-      <el-header class="header">
-        <div class="breadcrumb">首页 / 学生管理</div>
-        <div class="user-info">
-          <span>管理员</span>
-          <el-button type="text" @click="logout">退出</el-button>
-        </div>
-      </el-header>
-
-      <!-- 主内容区 -->
-      <el-main>
-
+  <div class="student-manager">
         <div class="action-bar" style="display: flex; gap: 10px; margin-bottom: 20px;">
           <el-input
               v-model="searchName"
@@ -152,22 +125,15 @@ const logout = () => {
 
 
 
-        <!-- 🌟 v-loading 让表格加载时有转圈效果 -->
+
         <el-table :data="tableData" v-loading="loading" border style="width: 100%">
-          <el-table-column prop="studentNo" label="学号" width="120" />
-          <el-table-column prop="className" label="班级" width="150" />
+          <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column prop="studentNo" label="学号" width="150" />
+          <el-table-column prop="className" label="班级" width="180" />
           <el-table-column prop="name" label="姓名" width="120" />
           <el-table-column prop="gender" label="性别" width="120" />
-<!--          <el-table-column label="性别">-->
-<!--            <template #default="scope">-->
-<!--              <el-tag :type="scope.row.gender === '男' ? 'primary' : 'danger'">-->
-<!--                {{ scope.row.gender}}-->
-<!--              </el-tag>-->
-<!--            </template>-->
-<!--          </el-table-column>-->
-          <el-table-column prop="age" label="年龄" width="80" />
-          <el-table-column prop="email" label="邮箱" width="200" />
-
+          <el-table-column prop="age" label="年龄" width="80"  />
+          <el-table-column prop="phoneNumber" label="电话号码" width="200" />
           <el-table-column label="操作">
             <template #default="{row}">
               <el-button size="small" type="primary" @click="handleEdit(row)">编辑</el-button>
@@ -183,9 +149,6 @@ const logout = () => {
             :total="total"
             @current-change="handleCurrentChange"
         />
-      </el-main>
-    </el-container>
-  </el-container>
   <el-dialog
       v-model="dialogVisible"
       title="新增学生信息"
@@ -196,8 +159,15 @@ const logout = () => {
       <el-form-item label="学号">
         <el-input v-model="form.studentNo" />
       </el-form-item>
-      <el-form-item label="班级">
-        <el-input v-model="form.clazzId" />
+      <el-form-item label="所在班级">
+        <el-select v-model="form.clazzId" placeholder="请选择班级">
+          <el-option
+              v-for="item in clazzList"
+              :key="item.id"
+              :label="item.className"
+              :value="item.id"
+          />
+        </el-select>
       </el-form-item>
       <el-form-item label="姓名">
         <el-input v-model="form.name" />
@@ -216,8 +186,8 @@ const logout = () => {
       <el-form-item label="年龄">
         <el-input v-model.number="form.age" type="number" />
       </el-form-item>
-      <el-form-item label="邮箱">
-        <el-input v-model="form.email" />
+      <el-form-item label="电话号码">
+        <el-input v-model.number="form.phoneNumber" type="number" />
       </el-form-item>
     </el-form>
 
@@ -228,7 +198,7 @@ const logout = () => {
         </span>
     </template>
   </el-dialog>
-
+  </div>
 </template>
 
 <style scoped>
