@@ -33,6 +33,7 @@ onMounted(async () => {
 })
 
 const handleCurrentChange = (val) => {
+  console.log("用户点击了页码：", val)
   pageNum.value = val
   loadData()
 }
