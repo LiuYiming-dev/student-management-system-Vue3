@@ -10,19 +10,25 @@ const router = createRouter({
         },
         {
             path: '/',
-            component: MainLayout, // 🌟 外壳组件
-            redirect: '/home',     // 访问根目录自动跳到学生管理
+            component: MainLayout,
+            redirect: '/home',
             children: [
                 {
-                    path: 'home', // 实际路径是 /home
-                    component: () => import('@/views/HomeView.vue'),
+                    path: 'student',
+                    component: () => import('@/views/StudentView.vue'),
                     meta: { title: '学生管理' }
                 },
                 {
-                    path: 'clazz', // 🌟 实际路径是 /clazz
+                    path: 'clazz',
                     component: () => import('@/views/ClazzView.vue'), // 🌟 确保这个文件存在
                     meta: { title: '班级管理' }
+                },
+                {
+                    path:'home',
+                    component: () => import('@/views/HomeView.vue'),
+                    meta:{title: '主页'}
                 }
+
             ]
         }
     ]

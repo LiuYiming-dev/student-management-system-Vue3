@@ -1,8 +1,8 @@
 <template>
   <el-container class="layout-container">
     <el-aside width="200px">
-      <!-- 1. 🌟 必须加上 router 属性，点击菜单才会跳转 URL -->
-      <!-- 2. 🌟 :default-active 绑定当前路径，刷新页面菜单高亮才不会丢 -->
+
+
       <el-menu
           :default-active="$route.path"
           router
@@ -10,8 +10,14 @@
           background-color="#304156"
           text-color="#fff"
       >
-        <!-- 3. 🌟 index 必须写成和路由配置里一样的 path -->
+
+
         <el-menu-item index="/home">
+          <el-icon><HomeFilled /></el-icon>
+          <span>主页</span>
+        </el-menu-item>
+
+        <el-menu-item index="/student">
           <el-icon><User /></el-icon>
           <span>学生管理</span>
         </el-menu-item>
@@ -20,6 +26,10 @@
           <el-icon><School /></el-icon>
           <span>班级管理</span>
         </el-menu-item>
+
+
+
+
       </el-menu>
     </el-aside>
 
@@ -32,3 +42,6 @@
     </el-container>
   </el-container>
 </template>
+<script setup lang="ts">
+import {HomeFilled, School, User} from "@element-plus/icons-vue";
+</script>

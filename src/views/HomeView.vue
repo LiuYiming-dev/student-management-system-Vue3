@@ -1,211 +1,145 @@
-<script setup>
-import {onMounted, ref} from 'vue'
-import {ElMessage, ElMessageBox} from 'element-plus'
-import {addStudent, deleteStudent, getStudentPage, updateStudent} from '@/api/student'
-import router from "@/router/index.js";
-import {getAllClazz} from "@/api/clazz.js";
-
-const tableData = ref([])
-const total = ref(0)
-const pageNum = ref(1)
-const pageSize = ref(10)
-const loading = ref(false)
-const searchName = ref('')
-const clazzList = ref([])
-
-
-
-// 加载数据
-const loadData = async () => {
-  loading.value = true
-  try {
-    const res = await getStudentPage({
-      pageNum: pageNum.value,
-      pageSize: pageSize.value,
-      name:searchName.value
-    })
-    // 🌟 注意：因为拦截器里返回了 res.data，这里直接拿 list 和 total
-    console.log("接口返回的数据：", res)
-    tableData.value = res.records
-    total.value = res.total
-    console.log("注入表格的数据：", tableData.value)
-  } catch (e) {
-    console.error('获取数据失败了：', e)
-  }
-  finally {
-    loading.value = false
-  }
-}
-
-onMounted(async () =>{
-  await loadData();
-  clazzList.value = await getAllClazz();
-})
-
-const handleCurrentChange = (val) => {
-  pageNum.value = val
-  loadData()
-}
-
-// 删除
-const handleDelete = (id) => {
-  ElMessageBox.confirm('确定要删除吗？', '提示', { type: 'warning' }).then(async () => {
-    await deleteStudent(id) // 调用 API
-    ElMessage.success('删除成功')
-    loadData()
-  })
-}
-
-const dialogVisible = ref(false)
-const form = ref({ studentNo: '', name: '', age: '', phoneNumber: '', clazzId: 1, gender: 1 })
-
-const openDialog = () => {
-  console.log("click the add button")
-  form.value = { clazzId: 1, gender: 1 } // 重置表单
-  dialogVisible.value = true
-}
-
-const handleEdit = (row) => {
-  const editData = JSON.parse(JSON.stringify(row));
-  console.log("编辑原始数据:", row.gender)
-  if (editData.gender === '男' || editData.gender === 1) {
-    editData.gender = 1
-  } else if (editData.gender === '女' || editData.gender === 0) {
-    editData.gender = 0
-  }
-  form.value = editData;
-  dialogVisible.value = true;
-}
-
-// 保存（增/改）
-const save = async () => {
-  try {
-    if (form.value.id) {
-      await updateStudent(form.value)
-      ElMessage.success('修改成功')
-    } else {
-      // 如果后端校验失败（比如学号重复），request.js 会抛出 reject
-      // 那么这里的代码会直接跳到 catch，不会执行下一行的“新增成功”
-      await addStudent(form.value);
-      ElMessage.success('新增成功');
-    }
-    dialogVisible.value = false;
-    loadData();
-  } catch (error){
-    console.error('提交失败:' + error.message);
-    ElMessage.error('提交失败:' + error.message);
-  }
-
-}
-const logout = () => {
-  localStorage.removeItem('student_token') // 清除 Token
-  router.push('/login')
-  ElMessage.success('已安全退出')
-}
-
-
-</script>
-
-
 <template>
+  <div class="dashboard-container">
+    <!-- 顶部统计卡片 -->
+    <el-row :gutter="20">
+      <el-col :span="6">
+        <el-card shadow="hover">
+          <template #header>总学生人数</template>
+          <div class="stat-num">{{ stats.totalStudents }}</div>
+        </el-card>
+      </el-col>
+    </el-row>
 
-  <div class="student-manager">
-        <div class="action-bar" style="display: flex; gap: 10px; margin-bottom: 20px;">
-          <el-input
-              v-model="searchName"
-              placeholder="输入姓名搜索"
-              style="width: 200px"
-              clearable
-              @clear="loadData"
-          />
+    <el-row :gutter="20" style="margin-top: 20px">
+      <el-col :xs="24" :md="12">
+        <el-card header="性别占比" class="dashboard-card">
+          <div id="genderChart" class="chart-box"></div>
+        </el-card>
+      </el-col>
 
-          <el-button type="primary" icon="Search" @click="loadData">搜索</el-button>
-          <el-button type="success" icon="Plus" @click="openDialog">新增学生</el-button>
-        </div>
-
-
-
-
-        <el-table :data="tableData" v-loading="loading" border style="width: 100%">
-          <el-table-column type="index" label="序号" width="60" align="center" />
-          <el-table-column prop="studentNo" label="学号" width="150" />
-          <el-table-column prop="className" label="班级" width="180" />
-          <el-table-column prop="name" label="姓名" width="120" />
-          <el-table-column prop="gender" label="性别" width="120" />
-          <el-table-column prop="age" label="年龄" width="80"  />
-          <el-table-column prop="phoneNumber" label="电话号码" width="200" />
-          <el-table-column label="操作">
-            <template #default="{row}">
-              <el-button size="small" type="primary" @click="handleEdit(row)">编辑</el-button>
-              <el-button size="small" type="danger" @click="handleDelete(row.id)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <el-pagination
-            class="pagination"
-            background
-            layout="prev, pager, next"
-            :total="total"
-            @current-change="handleCurrentChange"
-        />
-  <el-dialog
-      v-model="dialogVisible"
-      title="新增学生信息"
-      width="400px"
-  >
-    <!-- 这里是表单，每个 el-input 通过 v-model 绑定到 form 对象上 -->
-    <el-form :model="form" label-width="80px">
-      <el-form-item label="学号">
-        <el-input v-model="form.studentNo" />
-      </el-form-item>
-      <el-form-item label="所在班级">
-        <el-select v-model="form.clazzId" placeholder="请选择班级">
-          <el-option
-              v-for="item in clazzList"
-              :key="item.id"
-              :label="item.className"
-              :value="item.id"
-          />
-        </el-select>
-      </el-form-item>
-      <el-form-item label="姓名">
-        <el-input v-model="form.name" />
-      </el-form-item>
-<!--      <el-form-item label="性别">-->
-<!--        <el-input v-model="form.gender" />-->
-<!--      </el-form-item>-->
-      <el-form-item label="性别">
-        <!-- v-model 依然绑定 form.gender -->
-        <el-radio-group v-model="form.gender">
-          <!-- 🌟 注意这里的 :label="1"，加了冒号表示传递的是数字 1，不加冒号传的是字符串 "1" -->
-          <el-radio :value="1">男</el-radio>
-          <el-radio :value="0">女</el-radio>
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item label="年龄">
-        <el-input v-model.number="form.age" type="number" />
-      </el-form-item>
-      <el-form-item label="电话号码">
-        <el-input v-model.number="form.phoneNumber" type="number" />
-      </el-form-item>
-    </el-form>
-
-    <template #footer>
-        <span class="dialog-footer">
-          <el-button @click="dialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="save">确定</el-button>
-        </span>
-    </template>
-  </el-dialog>
+      <el-col :xs="24" :md="12">
+        <el-card header="班级人数分布" class="dashboard-card">
+          <div id="classChart" class="chart-box"></div>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
+<script setup>
+import { onMounted, onUnmounted, ref } from 'vue'
+import * as echarts from 'echarts'
+import { getDashboardData } from '@/api/stat'
+
+const stats = ref({ totalStudents: 0 })
+let genderChart = null
+let classChart = null
+const handleResize = () => {
+  genderChart?.resize()
+  classChart?.resize()
+}
+    onMounted(async () => {
+      const res = await getDashboardData()
+      stats.value = res
+
+      // 初始化性别饼图
+      genderChart = echarts.init(document.getElementById('genderChart'))
+      genderChart.setOption({
+        tooltip: {trigger: 'item'},
+        series: [{type: 'pie', radius: '60%', data: res.genderData}]
+      })
+
+      // 初始化班级柱状图
+      classChart = echarts.init(document.getElementById('classChart'))
+      classChart.setOption({
+        title: {text: '班级人数分布', left: 'center'},
+        tooltip: {trigger: 'axis'},
+        grid: {
+          top: '15%',
+          left: '5%',
+          right: '5%',
+          bottom: '15%', // 🌟 必须给 35% 以上，文字竖过来后占空很大
+          containLabel: true
+        },
+        xAxis: {
+          type: 'category',
+          data: res.classData.map(d => d.name),
+          axisLabel: {
+            interval: 0,
+            rotate: 0,
+            fontSize: 12,
+            color: '#666',
+            formatter: function (value) {
+              return value.split('').join('\n');
+            },
+            margin: 15
+          }
+        },
+        yAxis: {
+          type: 'value',
+          name: '人数'
+        },
+        series: [{
+          name: '人数',
+          type: 'bar',
+          barWidth: '40%', // 调窄柱子，看起来更精致
+          data: res.classData.map(d => d.value),
+          itemStyle: {
+            color: '#409EFF',
+            borderRadius: [5, 5, 0, 0] // 柱子顶部圆角
+          },
+          label: {
+            show: true,
+            position: 'top'
+          }
+        }]
+      })
+
+      window.addEventListener('resize', handleResize)
+    });
+
+onUnmounted(() => {
+  window.removeEventListener('resize', handleResize)
+  genderChart?.dispose();
+  classChart?.dispose();
+});
+</script>
+
 <style scoped>
-.layout-container { height: 100vh; }
-.el-aside { background-color: #304156; color: white; }
-.logo { height: 60px; line-height: 60px; text-align: center; font-size: 20px; font-weight: bold; background: #2b2f3a; }
-.header { background: #fff; border-bottom: 1px solid #dcdfe6; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
-.action-bar { margin-bottom: 20px; }
-.pagination { margin-top: 20px; text-align: right; }
+.stat-num { font-size: 30px; font-weight: bold; color: #409EFF; text-align: center; }
+/* 统一图表容器的高度 */
+.chart-box {
+  height: 430px; /* 稍微调高一点，给竖着的文字留空间 */
+  width: 100%;
+}
+
+/* 让卡片本身也撑满高度，这样看起来更整齐 */
+.dashboard-card {
+  height: 100%;
+}
+
+/* 给每一列增加底边距 */
+.el-col {
+  margin-bottom: 20px;
+}
+
+/* 适配：当在大屏幕（md）以上横着排时，取消最后一行的多余间距（可选） */
+@media (min-width: 992px) {
+  .dashboard-row {
+    margin-bottom: -20px; /* 抵消掉底部的间距，让布局更紧凑 */
+  }
+}
+
+/* 确保卡片高度一致且美观 */
+.dashboard-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chart-container {
+  height: 450px;
+  width: 100%;
+  margin-top: auto; /* 让图表在卡片内自动撑开 */
+}
 </style>
