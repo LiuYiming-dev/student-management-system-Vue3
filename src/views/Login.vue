@@ -22,7 +22,9 @@ import { ref } from 'vue'
 import axios from 'axios' // 暂时直接用 axios 测通，也可以用你封装的 request
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import {useUserStore} from "@/stores/user.js";
 
+const userStore = useUserStore()
 const router = useRouter()
 const loginForm = ref({
   username: '',
@@ -31,17 +33,14 @@ const loginForm = ref({
 
 const handleLogin = async () => {
   try {
-    // 🌟 调用你后端的登录接口
+
     const res = await axios.post('http://localhost:8080/user/login', loginForm.value)
 
     if (res.data.code === '200') {
-      // 1. 拿到那串神奇的 Token
-      const token = res.data.data
-      // 2. 🌟 核心：存入浏览器本地存储 (localStorage)
+      const token = res.data.data.token
       localStorage.setItem('student_token', token)
-
+      userStore.setUserInfo(res.data.data.user)
       ElMessage.success('登录成功')
-      // 3. 跳转到主页
       await router.push('/')
     } else {
       ElMessage.error(res.data.msg)
