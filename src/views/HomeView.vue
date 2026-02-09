@@ -1,13 +1,43 @@
 <template>
   <div class="dashboard-container">
-    <!-- 顶部统计卡片 -->
-    <el-row :gutter="20">
-      <el-col :span="6">
-        <el-card shadow="hover">
-          <template #header>总学生人数</template>
-          <div class="stat-num">{{ stats.totalStudents }}</div>
+    <el-row :gutter="20" class="stat-row">
+      <el-col :xs="24" :sm="12" :lg="6">
+        <el-card shadow="hover" class="stat-card">
+          <div class="card-content">
+            <el-icon class="icon student-icon"><UserFilled /></el-icon>
+            <div class="text-area">
+              <div class="title">总学生数</div>
+              <div class="number">{{ stats.totalStudents }}</div>
+            </div>
+          </div>
         </el-card>
       </el-col>
+
+      <el-col :xs="24" :sm="12" :lg="6">
+        <el-card shadow="hover" class="stat-card">
+          <div class="card-content">
+            <el-icon class="icon clazz-icon"><School /></el-icon>
+            <div class="text-area">
+              <div class="title">班级总数</div>
+              <div class="number">{{ stats.totalClasses }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+
+      <el-col :xs="24" :sm="12" :lg="6">
+        <el-card shadow="hover" class="stat-card">
+          <div class="card-content">
+            <el-icon class="icon avgAge-icon"><Orange /></el-icon>
+            <div class="text-area">
+              <div class="title">平均年龄</div>
+              <div class="number">{{ stats.avgAge }}</div>
+            </div>
+          </div>
+        </el-card>
+      </el-col>
+
+
     </el-row>
 
     <el-row :gutter="20" style="margin-top: 20px">
@@ -30,8 +60,9 @@
 import { onMounted, onUnmounted, ref } from 'vue'
 import * as echarts from 'echarts'
 import { getDashboardData } from '@/api/stat'
+import {Orange, School, UserFilled} from "@element-plus/icons-vue";
 
-const stats = ref({ totalStudents: 0 })
+const stats = ref({totalStudents: 0, totalClasses: 0, avgAge: 0})
 let genderChart = null
 let classChart = null
 const handleResize = () => {
@@ -140,6 +171,16 @@ onUnmounted(() => {
 .chart-container {
   height: 450px;
   width: 100%;
-  margin-top: auto; /* 让图表在卡片内自动撑开 */
+  margin-top: auto;
 }
+
+.stat-row { margin-bottom: 20px; }
+.stat-card { border-radius: 8px; }
+.card-content { display: flex; align-items: center; }
+.icon { font-size: 48px; margin-right: 20px; padding: 10px; border-radius: 8px; }
+.student-icon { color: #409EFF; background: #ecf5ff; }
+.clazz-icon { color: #67C23A; background: #f0f9eb; }
+.avgAge-icon{color: #6366f1; background: #eef2ff;}
+.title { font-size: 14px; color: #909399; margin-bottom: 5px; }
+.number { font-size: 24px; font-weight: bold; color: #303133; }
 </style>
