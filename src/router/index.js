@@ -27,7 +27,13 @@ const router = createRouter({
                     path:'home',
                     component: () => import('@/views/HomeView.vue'),
                     meta:{title: '主页'}
+                },
+                {
+                    path:'profile',
+                    component: () => import('@/views/ProfileView.vue'),
+                    meta:{title: '个人资料'}
                 }
+
 
             ]
         }

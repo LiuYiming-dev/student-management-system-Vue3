@@ -49,8 +49,7 @@
             </div>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item :icon="User">个人中心</el-dropdown-item>
-                <el-dropdown-item :icon="Setting">系统设置</el-dropdown-item>
+                <el-dropdown-item :icon="User" @click="router.push('/profile')">个人中心</el-dropdown-item>
                 <el-dropdown-item divided :icon="SwitchButton" @click="handleLogout">
                   退出登录
                 </el-dropdown-item>
