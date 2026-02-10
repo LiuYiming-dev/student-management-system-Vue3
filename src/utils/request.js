@@ -1,7 +1,6 @@
 import axios from 'axios'
-import { ElMessage } from 'element-plus'
 import router from '@/router'
-
+import { ElMessage, ElNotification } from 'element-plus'
 // 1. 创建实例：配置基础路径和超时
 const request = axios.create({
     baseURL: 'http://localhost:8080',
@@ -30,12 +29,29 @@ request.interceptors.response.use(
         }
     },
     error => {
-        if (error.response && error.response.status === 401) {
-            localStorage.removeItem('student_token'); // 清除掉那个可能过期的假证件
-            location.href = '/login'; // 🌟 暴力跳转到登录页
-            return Promise.reject('请先登录');
+        let message = '网络异常，请稍后再试'
+        if (error.response) {
+            const status = error.response.status
+            switch (status) {
+                case 401:
+                    message = '身份已过期，请重新登录'
+                    localStorage.removeItem('student_token'); // 清除掉那个可能过期的假证件
+                    location.href = '/login'; // 🌟 暴力跳转到登录页
+                    break
+                case 403:
+                    message = '权限不足：您没有权限执行此操作'
+                    break
+                case 404:
+                    message = '请求的接口不存在'
+                    break
+                case 500:
+                    message = '服务器内部错误，请联系管理员'
+                    break
+                default:
+                    message = error.response.data?.msg || '系统异常'
+            }
         }
-        return Promise.reject(error);
+        return Promise.reject(new Error(message));
     }
 )
 

@@ -50,9 +50,14 @@ const handleCurrentChange = (val) => {
 // 删除
 const handleDelete = (id) => {
   ElMessageBox.confirm('确定要删除吗？', '提示', { type: 'warning' }).then(async () => {
-    await deleteStudent(id) // 调用 API
-    ElMessage.success('删除成功')
-    loadData()
+    try {
+      await deleteStudent(id); // 调用 API
+      ElMessage.success('删除成功')
+      loadData()
+    } catch (e){
+      ElMessage.error("Error:" + e.message);
+    }
+
   })
 }
 

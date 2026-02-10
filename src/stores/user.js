@@ -8,7 +8,8 @@ export const useUserStore = defineStore('user', () => {
     const userInfo = ref({
         id: cacheUser.id || null,
         username: cacheUser.username || '',
-        nickname: cacheUser.nickname || '访客' // 默认值
+        nickname: cacheUser.nickname || '访客',// 默认值
+        role: cacheUser.role || 'STUDENT'
     })
 
     // 2. 定义行为 (Action) - 相当于修改数据的方法

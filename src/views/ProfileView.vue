@@ -6,6 +6,7 @@
           <div class="avatar-area">
             <el-avatar :size="100" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
             <h3>{{ userStore.userInfo.nickname }}</h3>
+            <el-tag>{{userStore.userInfo.role}}</el-tag>
           </div>
           <div class="detail-area">
             <p>账号：{{ userStore.userInfo.username }}</p>
