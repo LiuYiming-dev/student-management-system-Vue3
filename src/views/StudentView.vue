@@ -2,7 +2,6 @@
 import {onMounted, ref} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {addStudent, deleteStudent, getStudentPage, updateStudent} from '@/api/student'
-import router from "@/router/index.js";
 import {getAllClazz} from "@/api/clazz.js";
 
 const tableData = ref([])
@@ -53,7 +52,7 @@ const handleDelete = (id) => {
     try {
       await deleteStudent(id); // 调用 API
       ElMessage.success('删除成功')
-      loadData()
+      await loadData()
     } catch (e){
       ElMessage.error("Error:" + e.message);
     }
@@ -102,13 +101,6 @@ const save = async () => {
   }
 
 }
-const logout = () => {
-  localStorage.removeItem('student_token') // 清除 Token
-  router.push('/login')
-  ElMessage.success('已安全退出')
-}
-
-
 </script>
 
 
@@ -207,10 +199,6 @@ const logout = () => {
 </template>
 
 <style scoped>
-.layout-container { height: 100vh; }
-.el-aside { background-color: #304156; color: white; }
-.logo { height: 60px; line-height: 60px; text-align: center; font-size: 20px; font-weight: bold; background: #2b2f3a; }
-.header { background: #fff; border-bottom: 1px solid #dcdfe6; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; }
 .action-bar { margin-bottom: 20px; }
 .pagination { margin-top: 20px; text-align: right; }
 </style>

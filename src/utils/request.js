@@ -1,6 +1,4 @@
 import axios from 'axios'
-import router from '@/router'
-import { ElMessage, ElNotification } from 'element-plus'
 // 1. 创建实例：配置基础路径和超时
 const request = axios.create({
     baseURL: 'http://localhost:8080',

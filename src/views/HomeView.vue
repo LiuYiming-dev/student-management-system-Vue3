@@ -137,7 +137,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.stat-num { font-size: 30px; font-weight: bold; color: #409EFF; text-align: center; }
 /* 统一图表容器的高度 */
 .chart-box {
   height: 430px; /* 稍微调高一点，给竖着的文字留空间 */
@@ -150,15 +149,9 @@ onUnmounted(() => {
 }
 
 /* 给每一列增加底边距 */
-.el-col {
-  margin-bottom: 20px;
-}
 
 /* 适配：当在大屏幕（md）以上横着排时，取消最后一行的多余间距（可选） */
 @media (min-width: 992px) {
-  .dashboard-row {
-    margin-bottom: -20px; /* 抵消掉底部的间距，让布局更紧凑 */
-  }
 }
 
 /* 确保卡片高度一致且美观 */
@@ -166,12 +159,6 @@ onUnmounted(() => {
   height: 100%;
   display: flex;
   flex-direction: column;
-}
-
-.chart-container {
-  height: 450px;
-  width: 100%;
-  margin-top: auto;
 }
 
 .stat-row { margin-bottom: 20px; }

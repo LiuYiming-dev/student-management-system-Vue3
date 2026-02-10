@@ -104,10 +104,6 @@
 
 .main-content { padding: 20px; }
 
-.el-menu-item.is-active {
-  background-color: #263445 !important;
-}
-
 .user-profile {
   display: flex;
   align-items: center;
@@ -123,13 +119,12 @@
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
-  HomeFilled,
   School,
   User,
   Collection,
   ArrowDown,
   SwitchButton,
-  Setting
+  House
 } from "@element-plus/icons-vue";
 import { useUserStore } from "@/stores/user";
 
