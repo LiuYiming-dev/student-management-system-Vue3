@@ -19,6 +19,9 @@ request.interceptors.request.use(config => {
 // 3. 响应拦截器：统一处理后端的 Result
 request.interceptors.response.use(
     response => {
+        if (response.data instanceof Blob) {
+            return response.data
+        }
         const res = response.data
         if (res.code === '200') {
             return res.data;

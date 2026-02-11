@@ -1,7 +1,8 @@
 <script setup>
 
 import {onMounted, ref} from "vue";
-import {getClazzPage} from "@/api/clazz.js";
+import {exportClazz, getClazzPage} from "@/api/clazz.js";
+import {ElMessage} from "element-plus";
 
 const tableData = ref([])
 const total = ref(0)
@@ -38,11 +39,34 @@ const handleCurrentChange = (val) => {
   loadData()
 }
 
+const handleExport = async () => {
+  try {
+    const res = await exportClazz()
+
+    const url = window.URL.createObjectURL(new Blob([res]))
+    const link = document.createElement('a')
+    link.href = url
+    // 🌟 设置文件名
+    link.setAttribute('download', '班级列表.xlsx')
+    document.body.appendChild(link)
+    link.click()
+
+    // 清理现场
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败详情:', error)
+  }
+};
 
 
 </script>
 
 <template>
+  <div class="action-bar" style="display: flex; gap: 10px; margin-bottom: 20px;">
+  <el-button type="success" icon="Plus" @click="handleExport">导出</el-button>
+  </div>
   <div class="clazz-manager">
 
     <el-table :data="tableData" v-loading="loading" border style="width: 100%">

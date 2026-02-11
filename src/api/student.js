@@ -19,3 +19,8 @@ export const updateStudent = (data) => {
 export const deleteStudent = (id) => {
     return request({ url: `/student/delete/${id}`, method: 'delete' })
 }
+
+export const exportStudent = () => {
+    return request({ url: `/student/export`, method: 'get' , responseType:"blob"})
+}
+

@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {addStudent, deleteStudent, getStudentPage, updateStudent} from '@/api/student'
+import {addStudent, deleteStudent, exportStudent, getStudentPage, updateStudent} from '@/api/student'
 import {getAllClazz} from "@/api/clazz.js";
 
 const tableData = ref([])
@@ -101,6 +101,27 @@ const save = async () => {
   }
 
 }
+
+const handleExport = async () => {
+  try {
+    const res = await exportStudent()
+
+    const url = window.URL.createObjectURL(new Blob([res]))
+    const link = document.createElement('a')
+    link.href = url
+    // 🌟 设置文件名
+    link.setAttribute('download', 'students.xlsx')
+    document.body.appendChild(link)
+    link.click()
+
+    // 清理现场
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败详情:', error)
+  }
+};
 </script>
 
 
@@ -118,6 +139,7 @@ const save = async () => {
 
           <el-button type="primary" icon="Search" @click="loadData">搜索</el-button>
           <el-button type="success" icon="Plus" @click="openDialog">新增学生</el-button>
+          <el-button type="success" icon="Plus" @click="handleExport">导出学生表</el-button>
         </div>
 
 
