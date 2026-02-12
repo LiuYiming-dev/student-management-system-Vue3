@@ -50,6 +50,7 @@
             <template #dropdown>
               <el-dropdown-menu>
                 <el-dropdown-item :icon="User" @click="router.push('/profile')">个人中心</el-dropdown-item>
+                <el-dropdown-item :icon="Expand" @click="handleExportAll">一键导出</el-dropdown-item>
                 <el-dropdown-item divided :icon="SwitchButton" @click="handleLogout">
                   退出登录
                 </el-dropdown-item>
@@ -115,7 +116,7 @@
 
 </style>
 
-<script setup lang="ts">
+<script setup>
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
@@ -124,9 +125,10 @@ import {
   Collection,
   ArrowDown,
   SwitchButton,
-  House
+  House, Expand
 } from "@element-plus/icons-vue";
 import { useUserStore } from "@/stores/user";
+import {exportAll} from "@/api/stat";
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -148,5 +150,26 @@ const handleLogout = () => {
   }).catch(() => {
     // 用户点取消，不做任何事
   });
+};
+
+const handleExportAll = async () => {
+  try {
+    const res = await exportAll()
+
+    const url = window.URL.createObjectURL(new Blob([res]))
+    const link = document.createElement('a')
+    link.href = url
+    // 🌟 设置文件名
+    link.setAttribute('download', 'allInformation.xlsx')
+    document.body.appendChild(link)
+    link.click()
+
+    // 清理现场
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    ElMessage.success('导出成功')
+  } catch (error) {
+    console.error('导出失败详情:', error)
+  }
 };
 </script>

@@ -24,3 +24,11 @@ export const exportStudent = () => {
     return request({ url: `/student/export`, method: 'get' , responseType:"blob"})
 }
 
+export const importStudent = (data) => {
+    return request({
+        url: `/student/import`, method: 'post', data: data, headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    })
+}
+

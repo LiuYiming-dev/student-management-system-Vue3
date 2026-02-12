@@ -1,7 +1,7 @@
 <script setup>
 import {onMounted, ref} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
-import {addStudent, deleteStudent, exportStudent, getStudentPage, updateStudent} from '@/api/student'
+import {addStudent, deleteStudent, exportStudent, getStudentPage, importStudent, updateStudent} from '@/api/student'
 import {getAllClazz} from "@/api/clazz.js";
 
 const tableData = ref([])
@@ -122,6 +122,45 @@ const handleExport = async () => {
     console.error('导出失败详情:', error)
   }
 };
+
+/**
+ * 当用户在文件选择框里选好文件并点“打开”时，这个函数会自动触发
+ * @param file 这是一个包含文件信息的对象
+ */
+const handleImport = async (file) => {
+  // 1. 🌟 获取原始文件对象
+  // file.raw 才是真正的文件二进制数据
+  const rawFile = file.raw
+
+  // 2. 校验文件类型（防止用户选了别的）
+  if (!rawFile) return
+  if (rawFile.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' &&
+      rawFile.type !== 'application/vnd.ms-excel') {
+    ElMessage.error('请上传 Excel 格式的文件！')
+    return
+  }
+
+  // 3. 🌟 准备“快递纸箱” (FormData)
+  const formData = new FormData()
+
+  // 4. 把文件塞进纸箱
+  // 注意：第一个参数 'file' 必须和后端 @RequestParam("file") 的名字一模一样
+  formData.append('file', rawFile)
+
+  // 5. 发送请求给后端
+  try {
+    ElMessage.info('正在解析并导入，请稍候...')
+
+    // 调用 API
+    await importStudent(formData)
+
+    ElMessage.success('导入成功！')
+    loadData() // 🌟 导入成功后刷新表格数据
+  } catch (error) {
+    // 错误已经被 request.js 的拦截器处理（显示 403 权限不足或 500 报错）
+    console.error('导入失败', error)
+  }
+}
 </script>
 
 
@@ -139,7 +178,16 @@ const handleExport = async () => {
 
           <el-button type="primary" icon="Search" @click="loadData">搜索</el-button>
           <el-button type="success" icon="Plus" @click="openDialog">新增学生</el-button>
-          <el-button type="success" icon="Plus" @click="handleExport">导出学生表</el-button>
+          <el-button type="success" icon="Plus" @click="handleExport">导出学生</el-button>
+            <el-upload
+                action="#"
+                :auto-upload="false"
+                :on-change="handleImport"
+                :show-file-list="false"
+                accept=".xlsx, .xls"
+            >
+              <el-button type="success" icon="Upload">导入学生 Excel</el-button>
+            </el-upload>
         </div>
 
 
