@@ -3,6 +3,7 @@ import {onMounted, ref} from 'vue'
 import {ElMessage, ElMessageBox} from 'element-plus'
 import {addStudent, deleteStudent, exportStudent, getStudentPage, importStudent, updateStudent} from '@/api/student'
 import {getAllClazz} from "@/api/clazz.js";
+import {Plus, User} from "@element-plus/icons-vue";
 
 const tableData = ref([])
 const total = ref(0)
@@ -12,7 +13,9 @@ const loading = ref(false)
 const searchName = ref('')
 const clazzList = ref([])
 
-
+const uploadHeaders = {
+  token: localStorage.getItem('student_token')
+}
 
 // 加载数据
 const loadData = async () => {
@@ -28,6 +31,7 @@ const loadData = async () => {
     tableData.value = res.records
     total.value = res.total
     console.log("注入表格的数据：", tableData.value)
+    console.log("第一行数据的头像地址是：", tableData.value[0].avatar)
   } catch (e) {
     console.error('获取数据失败了：', e)
   }
@@ -61,11 +65,11 @@ const handleDelete = (id) => {
 }
 
 const dialogVisible = ref(false)
-const form = ref({ studentNo: '', name: '', age: '', phoneNumber: '', clazzId: 1, gender: 1 })
+const form = ref({ studentNo: '', name: '', age: '', phoneNumber: '', clazzId: 1, gender: 1,avatar: '' })
 
 const openDialog = () => {
   console.log("click the add button")
-  form.value = { clazzId: 1, gender: 1 } // 重置表单
+  form.value = { clazzId: 1, gender: 1,avatar: '' } // 重置表单
   dialogVisible.value = true
 }
 
@@ -161,6 +165,14 @@ const handleImport = async (file) => {
     console.error('导入失败', error)
   }
 }
+
+const handleAvatarSuccess = (res) => {
+  // 🌟 上传成功后，后端返回了图片的 URL，存入 form 对象，之后随表单一起提交
+  if (res.code === '200') {
+    form.value.avatar = res.data
+    ElMessage.success('头像上传成功')
+  }
+}
 </script>
 
 
@@ -195,6 +207,28 @@ const handleImport = async (file) => {
 
         <el-table :data="tableData" v-loading="loading" border style="width: 100%">
           <el-table-column type="index" label="序号" width="60" align="center" />
+          <el-table-column label="头像" width="80" align="center">
+            <template #default="{ row }">
+              <!-- 只有当 row.avatar 有值时才渲染图片 -->
+              <el-image
+                  v-if="row.avatar"
+                  style="width: 40px; height: 40px; border-radius: 50%"
+                  :src="row.avatar"
+                  :preview-src-list="[row.avatar]"
+                  preview-teleported
+              >
+                <!-- 图片加载失败时显示的内容 -->
+                <template #error>
+                  <div style="background: #f5f7fa; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;">
+                    <el-icon><User /></el-icon>
+                  </div>
+                </template>
+              </el-image>
+
+              <!-- 如果数据里根本没头像，直接显示默认头像组件 -->
+              <el-avatar v-else :size="40">匿</el-avatar>
+            </template>
+          </el-table-column>
           <el-table-column prop="studentNo" label="学号" width="150" />
           <el-table-column prop="className" label="班级" width="180" />
           <el-table-column prop="name" label="姓名" width="120" />
@@ -239,9 +273,6 @@ const handleImport = async (file) => {
       <el-form-item label="姓名">
         <el-input v-model="form.name" />
       </el-form-item>
-<!--      <el-form-item label="性别">-->
-<!--        <el-input v-model="form.gender" />-->
-<!--      </el-form-item>-->
       <el-form-item label="性别">
         <!-- v-model 依然绑定 form.gender -->
         <el-radio-group v-model="form.gender">
@@ -257,6 +288,19 @@ const handleImport = async (file) => {
         <el-input v-model.number="form.phoneNumber" type="number" />
       </el-form-item>
     </el-form>
+    <el-form-item label="头像">
+      <el-upload
+          action="http://localhost:8080/student/upload"
+          :headers="uploadHeaders"
+          :on-success="handleAvatarSuccess"
+          :show-file-list="false"
+          class="avatar-uploader"
+      >
+        <!-- 如果 form 里有地址了，显示预览图；否则显示加号 -->
+        <img v-if="form.avatar" :src="form.avatar" class="avatar-pre"  alt=""/>
+        <el-icon v-else class="avatar-uploader-icon"><Plus /></el-icon>
+      </el-upload>
+    </el-form-item>
 
     <template #footer>
         <span class="dialog-footer">
