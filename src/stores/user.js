@@ -9,7 +9,8 @@ export const useUserStore = defineStore('user', () => {
         id: cacheUser.id || null,
         username: cacheUser.username || '',
         nickname: cacheUser.nickname || '访客',// 默认值
-        role: cacheUser.role || 'STUDENT'
+        role: cacheUser.role || 'STUDENT',
+        avatar:cacheUser.avatar || 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
     })
 
     // 2. 定义行为 (Action) - 相当于修改数据的方法
@@ -20,7 +21,7 @@ export const useUserStore = defineStore('user', () => {
 
     // 3. 退出登录时清理
     const clearUserInfo = () => {
-        userInfo.value = {id: null, username: '', nickname: '访客'}
+        userInfo.value = {id: null, username: '', nickname: '访客', avatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'}
         localStorage.removeItem('user_info')
     }
 

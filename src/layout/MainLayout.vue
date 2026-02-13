@@ -42,7 +42,10 @@
           <el-dropdown trigger="click">
             <div class="user-profile">
               <div class="user-profile">
-                <el-avatar :size="32" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
+                <el-avatar
+                    :size="32"
+                    :src="userStore.userInfo.avatar || 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'"
+                />
                 <span class="nickname">{{ userStore.userInfo.nickname }}</span>
                 <el-icon><ArrowDown /></el-icon>
               </div>
